@@ -1,10 +1,19 @@
 #include "parser.hpp"
 
 
+ast_node::~ast_node()
+{
+	for (auto child : children)
+	{
+		delete child;
+	}
+}
+
 parser::parser()
 {
 	root.type = ast_type::Code_Block;
 }
+
 
 void parser::parse_file(string file_name)
 {
@@ -75,7 +84,7 @@ ast_node* parser::parse_expresion()
 
 ast_node* parser::parse_code_block()	// Un bloque esta compuesto de lineas de codigo separadas por ';'
 {
-	ast_node* node = new ast_node();	// @Leak
+	ast_node* node = new ast_node();	
 
 	node->type = ast_type::Code_Block;
 
@@ -96,7 +105,7 @@ ast_node* parser::parse_code_block()	// Un bloque esta compuesto de lineas de co
 
 ast_node* parser::parse_declaration()
 {
-	ast_node* node = new ast_node();	// @Leak
+	ast_node* node = new ast_node();	
 
 	expect_token(token_type::Identifier); // nos comemos la palabra clave 'var'
 
@@ -118,7 +127,7 @@ ast_node* parser::parse_declaration()
 
 ast_node* parser::parse_asigment()
 {
-	ast_node* node = new ast_node();	// @Leak
+	ast_node* node = new ast_node();	
 
 	node->type = ast_type::Asigment;
 
@@ -134,7 +143,7 @@ ast_node* parser::parse_asigment()
 
 ast_node* parser::parse_invocation()
 {
-	ast_node* node = new ast_node();	// @Leak
+	ast_node* node = new ast_node();	
 
 	node->type = ast_type::Invocation;
 	node->children.push_back(parse_identifier());
@@ -160,7 +169,7 @@ ast_node* parser::parse_invocation()
 
 ast_node* parser::parse_identifier()
 {
-	ast_node* node = new ast_node();	// @Leak
+	ast_node* node = new ast_node();	
 
 	node->type = ast_type::Identifier;
 	node->value_position = index;
@@ -171,7 +180,7 @@ ast_node* parser::parse_identifier()
 
 ast_node* parser::parse_literal()
 {
-	ast_node* node = new ast_node();	// @Leak
+	ast_node* node = new ast_node();	
 
 	node->type = ast_type::Literal;
 	node->value_position = index;
@@ -179,3 +188,5 @@ ast_node* parser::parse_literal()
 
 	return node;
 }
+
+

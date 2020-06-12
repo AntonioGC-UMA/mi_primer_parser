@@ -21,7 +21,9 @@ struct ast_node	// ast = abstract syntax tree
 
 	int value_position = -1;
 
-	vector<ast_node*> children; // @Leak nunca los deleteamos
+	vector<ast_node*> children; 
+
+	~ast_node();
 };
 
 struct parser
