@@ -22,10 +22,9 @@ token parser::expect_token(token_type expected)
 
 	if (t.type != expected)
 	{
-		cerr << "No se esperaba el token de tipo: " << token_type_name[(int)t.type] << " en la linea: " << t.line
-			<< " posicion: " << t.position_in_line << "\nSe esperaba un token de tipo: " << token_type_name[(int)expected] << endl;
+		cerr << "Se esperaba un token de tipo [" << token_type_name[(int)expected] << "], pero se encontro el token [" << lex.get_name(t) 
+			<< ", linea: " << t.line << ", columna: " << t.position_in_line << ", tipo: " << token_type_name[(int)t.type] << "]\n";
 
-		assert(false);
 		exit(-1);
 	}
 
