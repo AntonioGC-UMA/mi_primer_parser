@@ -1,25 +1,12 @@
 #include "parser.hpp"
 
 
-ast_node::~ast_node()
-{
-	for (auto child : children)
-	{
-		delete child;
-	}
-}
-
-parser::parser()
-{
-	root.type = ast_type::Code_Block;
-}
-
 
 void parser::parse_file(string file_name)
 {
 	lex.tokenize_file(file_name);
 
-	root = *parse_code_block();
+	root = nodes[parse_code_block()];
 }
 
 token parser::eat_token()
@@ -48,15 +35,17 @@ token parser::expect_token(token_type expected)
 
 token parser::peek_ahead(int amount)
 {
-	return  lex.tokens[index + amount];
+	int pos = index + amount;
+	if (pos >= lex.tokens.size()) pos = lex.tokens.size() - 1;
+
+	return  lex.tokens[pos];	
 }
 
 
 
-ast_node* parser::parse_expresion()
-{
-	ast_node* node = nullptr;
-
+int parser::parse_expresion()
+{	
+	int node = -1;
 
 	if (lex.get_name(peek_ahead(0)).compare("var") == 0)				// Estamos declarando una variable
 	{
@@ -82,77 +71,70 @@ ast_node* parser::parse_expresion()
 	return node;
 }
 
-ast_node* parser::parse_code_block()	// Un bloque esta compuesto de lineas de codigo separadas por ';'
+int parser::parse_code_block()	// Un bloque esta compuesto de lineas de codigo separadas por ';'
 {
-	ast_node* node = new ast_node();	
+	int node = nodes.size();
+	nodes.push_back({ ast_type::Code_Block, -1, {} });
 
-	node->type = ast_type::Code_Block;
-
-	while (index < lex.tokens.size())
+	while (lex.tokens[index].type != token_type::CloseBraket && lex.tokens[index].type != token_type::End_Of_File)
 	{
-		if (lex.tokens[index].type == token_type::CloseBraket)	// Si encontramos '}' lo quitamos y nos salimos
-		{
-			eat_token();
-			break;
-		}
-
-		node->children.push_back(parse_expresion());
+		nodes[node].children.push_back(parse_expresion());
 		expect_token(token_type::Semicolon);
 	}
+
+	eat_token();
 
 	return node;
 }
 
-ast_node* parser::parse_declaration()
+int parser::parse_declaration()
 {
-	ast_node* node = new ast_node();	
+	int node = nodes.size();
+	nodes.push_back({ ast_type::Declaration, -1, {} });
 
 	expect_token(token_type::Identifier); // nos comemos la palabra clave 'var'
 
-	node->children.push_back(parse_identifier());	// Nombre de la variable
+	nodes[node].children.push_back(parse_identifier());	// Nombre de la variable
 
 	if (peek_ahead(0).type == token_type::Equals)	// Le damos un valor?
 	{
 		eat_token(); // nos comemos el '='
-		node->children.push_back(parse_expresion());	// Valor de la variable;
-		node->type = ast_type::Declaration_And_Asigment;
-	}
-	else
-	{
-		node->type = ast_type::Declaration;
+		nodes[node].children.push_back(parse_expresion());	// Valor de la variable;
+		nodes[node].type = ast_type::Declaration_And_Asigment;
 	}
 
 	return node;
 }
 
-ast_node* parser::parse_asigment()
+int parser::parse_asigment()
 {
-	ast_node* node = new ast_node();	
+	int node = nodes.size();
+	nodes.push_back({ ast_type::Asigment, -1, {} });
 
-	node->type = ast_type::Asigment;
 
-	node->children.push_back(parse_identifier());	// Nombre de la variable
+	nodes[node].children.push_back(parse_identifier());	// Nombre de la variable
 
 	expect_token(token_type::Equals);
 
-	node->children.push_back(parse_expresion());	// Valor de la variable;
+	nodes[node].children.push_back(parse_expresion());	// Valor de la variable;
 
 	return node;
 }
 
 
-ast_node* parser::parse_invocation()
+int parser::parse_invocation()
 {
-	ast_node* node = new ast_node();	
+	int node = nodes.size();
+	nodes.push_back({ ast_type::Invocation, -1, {} });
 
-	node->type = ast_type::Invocation;
-	node->children.push_back(parse_identifier());
+
+	nodes[node].children.push_back(parse_identifier());
 
 	expect_token(token_type::OpenParentesis);
 
 	while (true)	// Guarda los parametros
 	{
-		if (peek_ahead(0).type != token_type::CloseParentesis) node->children.push_back(parse_expresion());
+		if (peek_ahead(0).type != token_type::CloseParentesis) nodes[node].children.push_back(parse_expresion());
 		else
 		{
 			eat_token();
@@ -167,23 +149,21 @@ ast_node* parser::parse_invocation()
 }
 
 
-ast_node* parser::parse_identifier()
+int parser::parse_identifier()
 {
-	ast_node* node = new ast_node();	
+	int node = nodes.size();
+	nodes.push_back({ ast_type::Identifier, index, {} });
 
-	node->type = ast_type::Identifier;
-	node->value_position = index;
 	eat_token();
 
 	return node;
 }
 
-ast_node* parser::parse_literal()
+int parser::parse_literal()
 {
-	ast_node* node = new ast_node();	
+	int node = nodes.size();
+	nodes.push_back({ ast_type::Literal, index, {} });
 
-	node->type = ast_type::Literal;
-	node->value_position = index;
 	eat_token();
 
 	return node;

@@ -21,7 +21,8 @@ enum class token_type
 	CloseParentesis,
 	Identifier,
 	Number,
-	Math
+	Math,
+	End_Of_File
 };
 
 

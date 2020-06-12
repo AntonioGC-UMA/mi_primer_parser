@@ -12,7 +12,9 @@ vector<string> token_type_name = {
 	"CloseParentesis",
 	"Identifier",
 	"Number",
-	"Math" };
+	"Math",
+	"End_Of_File"
+};
 
 token::token(token_type type, int position, int line, int position_in_line, int size = 1) 
 	: type(type), position(position), line(line), position_in_line(position_in_line), size(size) {}
@@ -35,10 +37,12 @@ void lexer::load_file(string file_name)
 void lexer::tokenize_file(string file_name)
 {
 	load_file(file_name);
-	while (index < text.size())
+
+	do
 	{
 		tokens.push_back(get_next_token());
-	}
+	} while (tokens.back().type != token_type::End_Of_File);
+
 }
 
 void lexer::advance()
@@ -123,7 +127,7 @@ token lexer::get_next_token()
 	
 	advance();
 
-	return { token_type::Semicolon, index, line, position_in_line };
+	return { token_type::End_Of_File, index, line, position_in_line };
 }
 
 token lexer::collect_string()

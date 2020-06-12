@@ -2,6 +2,9 @@
 
 #include "lexer.hpp"
 
+
+// @Improvements: Mejorar la estructura para hacer más facil el acto de travesar los nodos
+
 enum class ast_type
 {
 	Code_Block,
@@ -15,25 +18,26 @@ enum class ast_type
 	//Variable,
 };
 
+
 struct ast_node	// ast = abstract syntax tree
 {
 	ast_type type = ast_type::Code_Block;
 
+	// posicion del token que lo represente. Solo se usa para los valores, en el resto de casos se mantiene a -1
 	int value_position = -1;
 
-	vector<ast_node*> children; 
-
-	~ast_node();
+	vector<int> children; 
 };
 
 struct parser
 {
 	lexer lex;
+
 	int index = 0;
 
 	ast_node root;
 
-	parser();
+	vector<ast_node> nodes;
 
 	void parse_file(string file_name);
 
@@ -41,13 +45,13 @@ struct parser
 	token expect_token(token_type expected);
 	token peek_ahead(int amount);
 
-	ast_node* parse_expresion();	// Este es el más importante
-	ast_node* parse_code_block();
-	ast_node* parse_declaration();
-	ast_node* parse_asigment();
-	ast_node* parse_invocation();
-	ast_node* parse_identifier();
-	ast_node* parse_literal();
+	int parse_expresion();	// Este es el más importante
+	int parse_code_block();
+	int parse_declaration();
+	int parse_asigment();
+	int parse_invocation();
+	int parse_identifier();
+	int parse_literal();
 
 };
 
