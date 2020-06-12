@@ -1,0 +1,5 @@
+
+var a = "hola mundo ";
+var b = 42;
+
+print(a, b);
