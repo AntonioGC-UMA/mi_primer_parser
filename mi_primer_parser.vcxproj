@@ -142,10 +142,12 @@
     <ClCompile Include="lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parser.cpp" />
+    <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.hpp" />
     <ClInclude Include="parser.hpp" />
+    <ClInclude Include="timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

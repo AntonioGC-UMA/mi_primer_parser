@@ -24,12 +24,18 @@
     <ClCompile Include="parser.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="timer.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="parser.hpp">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

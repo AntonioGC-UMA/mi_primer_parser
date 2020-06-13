@@ -21,6 +21,8 @@ token::token(token_type type, int position, int line, int position_in_line, int 
 
 void lexer::load_file(string file_name)
 {
+	timer timer("load_file");
+
 	ifstream in;
 
 	in.open(file_name);
@@ -37,6 +39,8 @@ void lexer::load_file(string file_name)
 void lexer::tokenize_file(string file_name)
 {
 	load_file(file_name);
+
+	timer timer("tokenize_file");
 
 	do
 	{

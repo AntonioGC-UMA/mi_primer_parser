@@ -8,6 +8,8 @@
 #include <assert.h>
 using namespace std;
 
+#include "timer.h"
+
 enum class token_type
 {
 	String,

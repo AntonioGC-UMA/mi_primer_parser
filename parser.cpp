@@ -4,7 +4,11 @@
 
 void parser::parse_file(string file_name)
 {
+	timer time_total("total");
+
 	lex.tokenize_file(file_name);
+
+	timer time("parse_file");
 
 	root = nodes[parse_code_block()];
 }
