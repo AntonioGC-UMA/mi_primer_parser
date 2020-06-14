@@ -1,194 +1,347 @@
-#include "lexer.hpp"
+#include "Lexer.h"
 
 
-vector<string> token_type_name = { 
-	"String",
-	"Equals",
-	"Semicolon",
-	"Comma",
-	"Dot",
-	"OpenBraket",
-	"CloseBraket",
-	"OpenParentesis",
-	"CloseParentesis",
-	"Identifier",
-	"Number",
-	"Math",
-	"End_Of_File"
-};
-
-token::token(token_type type, int position, int line, int position_in_line, int size = 1) 
-	: type(type), position(position), line(line), position_in_line(position_in_line), size(size) {}
-
-void lexer::load_file(string file_name)
+Token::Token(token_type t, unsigned int p, unsigned int l, unsigned int c, unsigned int s) : type(t), position(p), line(l), colum(c), size(s)
 {
-	timer timer("load_file");
 
+}
+
+void Lexer::load_file(string file_name)
+{
 	ifstream in;
 
 	in.open(file_name);
 
 	if (in) {
 		ostringstream ss;
-		ss << in.rdbuf(); 
+		ss << in.rdbuf();
 		text = ss.str();
 	}
 
 	in.close();
 }
 
-void lexer::tokenize_file(string file_name)
+bool Lexer::tokenize_file(string file_name)
 {
 	load_file(file_name);
 
-	timer timer("tokenize_file");
+	if (text.size() < 1) return false;
 
-	tokens.reserve(10000);
+	caracter = text[index];
 
-	do
-	{
-		tokens.push_back(get_next_token());
-	} while (tokens.back().type != token_type::End_Of_File);
+	while (get_next_token()) {}
 
+	cout << message << endl;
+	return error;
 }
 
-void lexer::advance()
+token_type Lexer::look_back(unsigned int n)
 {
-	if (index < text.size())
-	{
-		index++;
-		caracter = text[index];
-		position_in_line++;
-	}
+	if (tokens.size() < n) return token_type::End_Of_File;
+
+	return tokens[tokens.size() - n].type;
 }
 
-void lexer::skip_white_space()
+
+bool Lexer::advance()
+{
+	index++;
+	colum++;
+
+	if (index >= text.size()) return false;
+
+	caracter = text[index];
+
+	return true;
+}
+
+bool Lexer::skip_white_space()
 {
 	while (isspace(caracter))
 	{
-		if (index >= text.size()) return;
-		if (caracter == '\n')
-		{
-			line++;
-			position_in_line = 0;
-		}
-		advance();
+		if (!advance()) return false;
 	}
+
+	return true;
 }
 
-void lexer::skip_coments()
+bool Lexer::skip_coments()
 {
-	if (caracter != '/') return;
-	if (text[index+1] != '/') return;
+	if ((index + 1) >= tokens.size()) return true;
 
-	while (caracter != '\n' || index < text.size())
+	if (text[index + 1] == '/')
 	{
-		advance();
+		while (caracter != '\n')
+		{
+			if (!advance()) return false;
+		}
+
+		line++;
+		colum = 0;
+		return true;
 	}
+	else if (text[index + 1] == '*')
+	{
+		while (advance())
+		{
+			if (caracter == '\n')
+			{
+				line++;
+				colum = 0;
+			}
+			else if (caracter == '/' && advance() && caracter == '*') return true;
+		}
+
+		return false;
+	}
+
+
+	return true;
 }
 
-token lexer::get_next_token()
+bool Lexer::get_next_token()
 {
-	caracter = text[index];
 	skip_white_space();
 	skip_coments();
 
-	if (index < text.size())
+	switch (caracter)
 	{
+	case '+':
+		tokens.emplace_back(token_type::Plus, index, line, colum, 1); return advance();
+	case '-':
+		tokens.emplace_back(token_type::Minus, index, line, colum, 1); return advance();
+	case '*':
+		tokens.emplace_back(token_type::Times, index, line, colum, 1); return advance();
+	case '/':
+		tokens.emplace_back(token_type::Slash, index, line, colum, 1); return advance();
+	case '{':
+		tokens.emplace_back(token_type::OpenBraket, index, line, colum, 1); return advance();
+	case '}':
+		tokens.emplace_back(token_type::CloseBraket, index, line, colum, 1); return advance();
+	case '(':
+		tokens.emplace_back(token_type::OpenParentesis, index, line, colum, 1); return advance();
+	case ')':
+		tokens.emplace_back(token_type::CloseParentesis, index, line, colum, 1); return advance();
+	case '[':
+		tokens.emplace_back(token_type::OpenBox, index, line, colum, 1); return advance();
+	case ']':
+		tokens.emplace_back(token_type::CloseBox, index, line, colum, 1); return advance();
+	case '<':
+		tokens.emplace_back(token_type::LessThan, index, line, colum, 1); return advance();
+	case '>':
+		tokens.emplace_back(token_type::MoreThan, index, line, colum, 1); return advance();
+	case '=':
+		return get_equals();
+	case '!':
+		tokens.emplace_back(token_type::Not, index, line, colum, 1); return advance();
+	case '.':
+		tokens.emplace_back(token_type::Dot, index, line, colum, 1); return advance();
+	case ',':
+		tokens.emplace_back(token_type::Comma, index, line, colum, 1); return advance();
+	case ';':
+		tokens.emplace_back(token_type::Semicolon, index, line, colum, 1); return advance();
+	case ':':
+		tokens.emplace_back(token_type::Colon, index, line, colum, 1); return advance();
+	case '"':
 
-		if(isalpha(caracter)) return collect_identifier();
 
-		if (isalnum(caracter)) return collect_number();
-
-		switch (caracter)
-		{
-		case '"':
-			return collect_string();
-		case '=':
-			return advance_and_return({ token_type::Equals, index, line, position_in_line });
-		case '(':
-			return advance_and_return({ token_type::OpenParentesis, index, line, position_in_line });
-		case ')':
-			return advance_and_return({ token_type::CloseParentesis, index, line, position_in_line });
-		case '{':
-			return advance_and_return({ token_type::OpenBraket, index, line, position_in_line });
-		case '}':
-			return advance_and_return({ token_type::CloseBraket, index, line, position_in_line });
-		case ',':
-			return advance_and_return({ token_type::Comma, index, line, position_in_line });
-		case '.':
-			return advance_and_return({ token_type::Dot, index, line, position_in_line });
-		case ';':
-			return advance_and_return({ token_type::Semicolon, index, line, position_in_line });
-		case '+':
-		case '-':
-		case '*':
-		case '/':			
-			return advance_and_return({ token_type::BinaryOperation, index, line, position_in_line });
-
-
-		default:
-			break;
-		}
+	default:		
+		if ('0' <= caracter && caracter <= '9') return get_number();
+		else if (('a' <= caracter && caracter <= 'z') || ('A' <= caracter && caracter <= 'Z') || caracter == '_') return get_identifier();
+		return advance(); // TODO should this be an error?
 	}
-	
-	advance();
-
-	return { token_type::End_Of_File, index, line, position_in_line };
 }
 
-token lexer::collect_string()
-{
-	advance();
 
-	token res = { token_type::String, index, line, position_in_line, 0 };
+bool Lexer::get_number()	// Valid for ints and floats
+{
+	Token token = { token_type::Int, index, line, colum, 0 };
+
+	if (!get_int()) return false;
+
+	if (caracter != '.')
+	{
+		token.size = index - token.position;	// is an int
+		tokens.push_back(token);
+		return true;
+	}
+
+	if (!advance()) return false;
+
+	if (!get_int()) return false;
+
+	if (caracter == '.')
+	{
+		message = "Error tokenizing float";
+		error = true;
+		return false;
+	}
+
+	token.type = token_type::Float;				// is a float	
+	token.size = index - token.position;
+	tokens.push_back(token);
+	return true;
+}
+
+bool Lexer::get_int()
+{
+	while ('0' <= caracter && caracter <= '9')
+	{
+		if (!advance()) return false;
+	}
+
+	switch (caracter)
+	{
+	case '+':	// valid characters after a number
+	case '-':
+	case '*':
+	case '/':
+	case '<':
+	case '>':
+	case '=':
+	case ')':
+	case ';':
+	case '.':
+	case ',':
+		break;
+	default:
+		message = "Error tokenizing int";
+		error = true;
+		return false;
+	}
+
+	return true;
+}
+
+bool Lexer::get_string()
+{
+	if (!advance()) return false;
+
+	Token token = { token_type::String, index, line, colum, 0 };
 
 	while (caracter != '"')
 	{
-		res.size++;
-		advance();
+		token.size++;
+		if (!advance()) return false;
 	}
 
-	advance();
+	tokens.push_back(token);
 
-	return res;
+	return true;
 }
 
-token lexer::collect_number()
+bool Lexer::get_identifier()
 {
-	token res = { token_type::Number, index, line, position_in_line, 0 };
+	Token token = { token_type::Identifier, index, line, colum, 0 };
 
-	while (caracter >= '0' && caracter <= '9' || caracter == '.')
+	while ((('a' <= caracter && caracter <= 'z') || ('A' <= caracter && caracter <= 'Z') || ('0' <= caracter && caracter <= '9') || caracter == '_'))
 	{
-		res.size++;
-		advance();
+		token.size++;
+		if (!advance()) return false;
 	}
 
-	return res;
-}
+	string name = text.substr(token.position, token.size);
 
-token lexer::collect_identifier()
-{
-	token res = { token_type::Identifier, index, line, position_in_line, 0 };
-
-	while (isalnum(caracter)) 
+	if (!name.compare("if"))		// Check for keywords. Use the ! because compare returns 0 if they are equal
 	{
-		res.size++;
-		advance();
+		token.type = token_type::If;
+	}
+	else if (!name.compare("else"))
+	{
+		token.type = token_type::Else;
+	}
+	else if (!name.compare("for"))
+	{
+		token.type = token_type::For;
+	}
+	else if (!name.compare("while"))
+	{
+		token.type = token_type::While;
+	}
+	else if (!name.compare("return"))
+	{
+		token.type = token_type::Return;
+	}
+	else if (!name.compare("continue"))
+	{
+		token.type = token_type::Continue;
+	}
+	else if (!name.compare("break"))
+	{
+		token.type = token_type::Break;
+	}
+	else if (!name.compare("enum"))
+	{
+		token.type = token_type::Enum;
+	}
+	else if (!name.compare("struct"))
+	{
+		token.type = token_type::Struct;
+	}
+	else if (!name.compare("null"))
+	{
+		token.type = token_type::Null;
+	}
+	else if (!name.compare("void"))	// TODO add void enum
+	{
+		token.type = token_type::Void;
 	}
 
-	return res;
+	tokens.push_back(token);
+
+	return true;
 }
 
-token lexer::advance_and_return(token t)
+bool Lexer::get_equals()
 {
-	advance();
+	token_type previous_token = look_back(1);
 
-	return t;
-}
+	switch (previous_token)	// If we find an = we need to check and maybe modify the previous token
+	{
+	case token_type::Plus:
+		tokens.back().type = token_type::PlusEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::Minus:
+		tokens.back().type = token_type::MinusEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::Times:
+		tokens.back().type = token_type::TimesEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::Slash:
+		tokens.back().type = token_type::SlashEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::LessThan:
+		tokens.back().type = token_type::LessThanEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::MoreThan:
+		tokens.back().type = token_type::MoreThanEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::Not:
+		tokens.back().type = token_type::NotEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::Colon:
+		tokens.back().type = token_type::ColonEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::Equals:
+		tokens.back().type = token_type::EqualsEquals;
+		tokens.back().size += 1;
+		break;
+	case token_type::Identifier:
+		tokens.emplace_back(token_type::Equals, index, line, colum, 0); return advance();
+	default:
+		message = "Error tokenizing '='";
+		error = true;
+		return false;
+	}
 
-string lexer::get_name(token t)
-{
-	return text.substr(t.position, t.size);
+	return advance();
 }
 

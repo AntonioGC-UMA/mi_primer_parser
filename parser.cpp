@@ -1,3 +1,4 @@
+/*
 #include "parser.hpp"
 
 
@@ -179,3 +180,4 @@ int parser::parse_binary_op()	// @Todo
 	eat_token(); // operator
 	int rigt = parse_expresion();
 }
+*/

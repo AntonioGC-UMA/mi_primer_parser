@@ -37,6 +37,7 @@ enum class token_type
 	LessThanEquals,
 	MoreThanEquals,
 	NotEquals,
+	ColonEquals,
 	If,		// TODO add to the reserved keywords the basic types
 	Else,
 	For,
@@ -47,6 +48,7 @@ enum class token_type
 	Enum,
 	Struct,
 	Null,
+	Void,
 	String,
 	Int,
 	Float,
@@ -56,7 +58,9 @@ enum class token_type
 struct Token
 {
 	token_type type;
-	int position, line, colum, size;	
+	unsigned int position, line, colum, size;	
+
+	Token(token_type t, unsigned int p, unsigned int l, unsigned int c, unsigned int s);
 };
 
 struct Lexer
@@ -67,15 +71,15 @@ struct Lexer
 	string message = "File tokenized successfully";
 	bool error = false;
 
-	int index;
+	unsigned int index = 0;
 	char caracter;
 
-	int line = 1, colum = 1;
+	unsigned int line = 1, colum = 1;
 
 	void load_file(string file_name);
 	bool tokenize_file(string file_name);
 
-	token_type look_back(int n);
+	token_type look_back(unsigned int n);
 
 	bool advance();
 	bool skip_white_space();
