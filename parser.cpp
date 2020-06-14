@@ -46,7 +46,7 @@ token parser::peek_ahead(int amount)
 
 
 
-int parser::parse_expresion()
+int parser::parse_expresion()		// @Bug: no estamos controlando que lo que nos pasen sea una epresion
 {	
 	int node = -1;
 
@@ -64,7 +64,8 @@ int parser::parse_expresion()
 	}
 	else if (peek_ahead(0).type == token_type::Identifier)			// Estamos referenciando una variable
 	{
-		node = parse_identifier();
+		if (peek_ahead(1).type == token_type::BinaryOperation)	node = parse_binary_op();
+		else													node = parse_identifier();
 	}
 	else
 	{
@@ -172,4 +173,9 @@ int parser::parse_literal()
 	return node;
 }
 
-
+int parser::parse_binary_op()	// @Todo
+{
+	int left = parse_expresion();
+	eat_token(); // operator
+	int rigt = parse_expresion();
+}

@@ -1,5 +1,6 @@
 #include "lexer.hpp"
 
+
 vector<string> token_type_name = { 
 	"String",
 	"Equals",
@@ -29,7 +30,7 @@ void lexer::load_file(string file_name)
 
 	if (in) {
 		ostringstream ss;
-		ss << in.rdbuf(); // reading data
+		ss << in.rdbuf(); 
 		text = ss.str();
 	}
 
@@ -41,6 +42,8 @@ void lexer::tokenize_file(string file_name)
 	load_file(file_name);
 
 	timer timer("tokenize_file");
+
+	tokens.reserve(10000);
 
 	do
 	{
@@ -121,7 +124,7 @@ token lexer::get_next_token()
 		case '-':
 		case '*':
 		case '/':			
-			return advance_and_return({ token_type::Math, index, line, position_in_line });
+			return advance_and_return({ token_type::BinaryOperation, index, line, position_in_line });
 
 
 		default:

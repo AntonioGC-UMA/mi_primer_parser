@@ -23,7 +23,7 @@ enum class token_type
 	CloseParentesis,
 	Identifier,
 	Number,
-	Math,
+	BinaryOperation,
 	End_Of_File
 };
 

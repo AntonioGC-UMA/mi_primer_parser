@@ -52,6 +52,7 @@ struct parser
 	int parse_invocation();
 	int parse_identifier();
 	int parse_literal();
+	int parse_binary_op();
 
 };
 

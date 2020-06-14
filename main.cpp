@@ -25,7 +25,7 @@ void prueba_parser()
 
 	par.parse_file("salida.txt");
 
-
+	
 
 	for (auto a : par.nodes[0].children)
 	{
@@ -48,8 +48,10 @@ int main()
 	//prueba_lexer();
 
 
-	prueba_parser();
+	//prueba_parser();
 
+	parser par;
+	par.parse_file("salida.txt");
 
 	return 0;
 }
