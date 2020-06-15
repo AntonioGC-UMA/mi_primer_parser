@@ -42,28 +42,31 @@ struct Parser
 	bool expect_token(token_type token); 
 	token_type peek(int offset);
 
-	bool is_invocation();
-	bool is_declaration();
-	bool is_asigment();
-	bool is_literal();
-	bool is_unary();
-	bool is_binary();
 
 
 	Ast_node* parse_code_block();
 	Ast_node* parse_statement();
 	Ast_node* parse_expresion();
+	
+	Ast_node* parse_binary_operator(Ast_node* left);
 
 	Ast_node* parse_declaration();
 	Ast_node* parse_asigment();
+
 	Ast_node* parse_invocation();
-
-	Ast_node* parse_unary_operator();
-	Ast_node* parse_binary_operator();
-
-
 	Ast_node* parse_identifier();
 	Ast_node* parse_literal();
+	Ast_node* parse_unary_operator();
+	Ast_node* parse_parentesis();
+
+
+	bool is_declaration();
+	bool is_asigment();
+
+	bool is_invocation();
+	bool is_identifier();
+	bool is_literal();
+	bool is_unary_operator();
 	
 };
 
