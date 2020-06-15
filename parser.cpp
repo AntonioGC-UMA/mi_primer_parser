@@ -44,47 +44,86 @@ Ast_node* Parser::parse_statement()
 {
     token_type current = peek(0);
 
-    if (current == token_type::Identifier)
-    {
-        token_type next_token = peek(1);
+    Ast_node* res = nullptr;
 
-        if (next_token == token_type::Colon) return parse_declaration();    // TODO shoud I handle constant declarations here?
-        if (next_token == token_type::Equals) return parse_asigment();      // TODO how do I handle the diferent types of segments?
-        if(next_token == token_type::OpenParentesis) return parse_invocation();
-    }
-    else if (current == token_type::If) // TODO: shoud the if statement keep the else statement inside?
-    {
+    if(is_declaration())        res = parse_declaration();
+    else if(is_asigment())      res = parse_asigment();
+    else if(is_invocation())    res = parse_invocation();
 
-    }
-    else if (current == token_type::Else)
-    {
+    if (!expect_token(token_type::Semicolon)) res = nullptr;
 
-    }
-    return nullptr;
+    return res;
 }
 
 Ast_node* Parser::parse_expresion()
 {
-    return nullptr;
+    token_type current = peek(0);
+    Ast_node* res = nullptr;
+
+    
+    if (is_invocation())                                res = parse_invocation();
+    else if (is_literal())                              res = parse_literal();
+    else if (is_binary())                               res = parse_binary_operator();
+    else if (is_unary())                                res = parse_unary_operator();
+    else if (current == token_type::Identifier)         res = parse_identifier();
+    else if (current == token_type::OpenParentesis)
+    {
+        res = parse_expresion();
+        if (!expect_token(token_type::CloseParentesis)) res = nullptr;
+    }
+
+    return res;
 }
 
 Ast_node* Parser::parse_declaration()
 {
-    token_type modifier = peek(2);
+    int offset = 2;     // the offset of the position i'm looking at
+    token_type modifier = peek(offset);
+    
+    if (modifier == token_type::Identifier)
+    {
+        offset++;
+        modifier = peek(offset); // parse the type info
+    }
+
     if (modifier == token_type::Colon)
     {
         nodes.push_back({ ast_type::ConstantDeclaration });
+    }    
+    else if (modifier == token_type::Equals)
+    {
+        nodes.push_back({ ast_type::Declaration }); // all declarations are declaration and asigment
     }
 
+    offset;
 
     Ast_node* node = &nodes.back();
 
     node->children.push_back(parse_identifier());
 
+    // TODO add the type, either read it or infer it
+    //node->children.push_back(type);
 
+    index += offset;
+
+    node->children.push_back(parse_expresion());
 }
 
 Ast_node* Parser::parse_asigment()
 {
-    return nullptr;
+    nodes.push_back({ ast_type::Asigment });
+    Ast_node* node = &nodes.back();
+
+    Ast_node* variable = parse_identifier();
+
+    if (!variable) return nullptr;
+
+    Ast_node* value = parse_expresion();
+
+    if (!value) return nullptr;
+
+    node->children.push_back(variable);
+    node->children.push_back(value);
+
+    return node;
 }
