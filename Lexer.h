@@ -4,9 +4,23 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <deque>
 #include <sstream>
 #include <assert.h>
 using namespace std;
+
+
+/*
+	TODO list
+
+	add token keywords for basic types
+	add token for casting. not sure of the sintax but i'm thinking of "identifier as type"
+	add token for get memory address and derreference pointer
+
+	maybe add checks when tokenizing ints. Right now saying "a := 15sadf;" is considered ok by the lexer 
+	maybe add token for type diferent from token for identifier
+	maybe revert all the /= += ... to simple tokens, it seems to make it easier for the parser
+*/
 
 enum class token_type
 {
@@ -21,6 +35,7 @@ enum class token_type
 	CloseParentesis,
 	OpenBox,
 	CloseBox,
+	Arrow,
 	Equals,
 	Plus,
 	Minus,
@@ -38,6 +53,7 @@ enum class token_type
 	MoreThanEquals,
 	NotEquals,
 	ColonEquals,
+	ColonColon,
 	If,		// TODO add to the reserved keywords the basic types
 	Else,
 	For,
@@ -49,7 +65,7 @@ enum class token_type
 	Struct,
 	Null,
 	Void,
-	String,
+	String,	// this are literals
 	Int,
 	Float,
 	End_Of_File
@@ -90,7 +106,10 @@ struct Lexer
 	bool get_int();
 	bool get_string();
 	bool get_identifier();
+
 	bool get_equals();
+	bool get_colon();
+	bool get_more_than();
 
 };
 

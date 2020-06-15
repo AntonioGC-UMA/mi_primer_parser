@@ -1,183 +1,90 @@
-/*
-#include "parser.hpp"
+#include "Parser.h"
+#include "Parser.h"
 
-
-
-void parser::parse_file(string file_name)
+bool Parser::parse_file(string file_name)
 {
-	timer time_total("total");
+    bool success = lexer.tokenize_file(file_name);
 
-	lex.tokenize_file(file_name);
+    if (!success)
+    {
+        cerr << lexer.error << endl;
+        return false;
+    }
 
-	timer time("parse_file");
+    root = parse_code_block(); 
 
-	root = nodes[parse_code_block()];
+    return true;     // TODO check for errors
 }
 
-token parser::eat_token()
+token_type Parser::peek(int offset)
 {
-	token t = lex.tokens[index];
-	index++;
-	return t;
+    int pos = index + offset;
+
+    if (pos < 0 || pos >= lexer.tokens.size()) return token_type::End_Of_File;
+
+    return lexer.tokens[pos].type;
 }
 
-token parser::expect_token(token_type expected)
+Ast_node* Parser::parse_code_block()
 {
-	token t = lex.tokens[index];
+    nodes.push_back({ ast_type::CodeBlock });
+    Ast_node* node = &nodes.back();
 
-	if (t.type != expected)
-	{
-		cerr << "Se esperaba un token de tipo [" << token_type_name[(int)expected] << "], pero se encontro el token [" << lex.get_name(t) 
-			<< ", linea: " << t.line << ", columna: " << t.position_in_line << ", tipo: " << token_type_name[(int)t.type] << "]\n";
+    while (true)
+    {
+        Ast_node* child = parse_statement();
+        if (child == nullptr) break;
+        node->children.push_back(child);
+    }
 
-		exit(-1);
-	}
-
-	index++;
-	return t;
+    return node;
 }
 
-token parser::peek_ahead(int amount)
+Ast_node* Parser::parse_statement()
 {
-	int pos = index + amount;
-	if (pos >= lex.tokens.size()) pos = lex.tokens.size() - 1;
+    token_type current = peek(0);
 
-	return  lex.tokens[pos];	
+    if (current == token_type::Identifier)
+    {
+        token_type next_token = peek(1);
+
+        if (next_token == token_type::Colon) return parse_declaration();    // TODO shoud I handle constant declarations here?
+        if (next_token == token_type::Equals) return parse_asigment();      // TODO how do I handle the diferent types of segments?
+        if(next_token == token_type::OpenParentesis) return parse_invocation();
+    }
+    else if (current == token_type::If) // TODO: shoud the if statement keep the else statement inside?
+    {
+
+    }
+    else if (current == token_type::Else)
+    {
+
+    }
+    return nullptr;
 }
 
-
-
-int parser::parse_expresion()		// @Bug: no estamos controlando que lo que nos pasen sea una epresion
-{	
-	int node = -1;
-
-	if (lex.get_name(peek_ahead(0)).compare("var") == 0)				// Estamos declarando una variable
-	{
-		node = parse_declaration();
-	}
-	else if (peek_ahead(1).type == token_type::Equals)			// Estamos asignando una variable
-	{
-		node = parse_asigment();
-	}
-	else if (peek_ahead(0).type == token_type::Identifier && peek_ahead(1).type == token_type::OpenParentesis)	// Estamos invocando una funcion
-	{
-		node = parse_invocation();
-	}
-	else if (peek_ahead(0).type == token_type::Identifier)			// Estamos referenciando una variable
-	{
-		if (peek_ahead(1).type == token_type::BinaryOperation)	node = parse_binary_op();
-		else													node = parse_identifier();
-	}
-	else
-	{
-		node = parse_literal();
-	}
-
-	return node;
-}
-
-int parser::parse_code_block()	// Un bloque esta compuesto de lineas de codigo separadas por ';'
+Ast_node* Parser::parse_expresion()
 {
-	int node = nodes.size();
-	nodes.push_back({ ast_type::Code_Block, -1, {} });
-
-	while (lex.tokens[index].type != token_type::CloseBraket && lex.tokens[index].type != token_type::End_Of_File)
-	{
-		nodes[node].children.push_back(parse_expresion());
-		expect_token(token_type::Semicolon);
-	}
-
-	eat_token();
-
-	return node;
+    return nullptr;
 }
 
-int parser::parse_declaration()
+Ast_node* Parser::parse_declaration()
 {
-	int node = nodes.size();
-	nodes.push_back({ ast_type::Declaration, -1, {} });
+    token_type modifier = peek(2);
+    if (modifier == token_type::Colon)
+    {
+        nodes.push_back({ ast_type::ConstantDeclaration });
+    }
 
-	expect_token(token_type::Identifier); // nos comemos la palabra clave 'var'
 
-	nodes[node].children.push_back(parse_identifier());	// Nombre de la variable
+    Ast_node* node = &nodes.back();
 
-	if (peek_ahead(0).type == token_type::Equals)	// Le damos un valor?
-	{
-		eat_token(); // nos comemos el '='
-		nodes[node].children.push_back(parse_expresion());	// Valor de la variable;
-		nodes[node].type = ast_type::Declaration_And_Asigment;
-	}
+    node->children.push_back(parse_identifier());
 
-	return node;
+
 }
 
-int parser::parse_asigment()
+Ast_node* Parser::parse_asigment()
 {
-	int node = nodes.size();
-	nodes.push_back({ ast_type::Asigment, -1, {} });
-
-
-	nodes[node].children.push_back(parse_identifier());	// Nombre de la variable
-
-	expect_token(token_type::Equals);
-
-	nodes[node].children.push_back(parse_expresion());	// Valor de la variable;
-
-	return node;
+    return nullptr;
 }
-
-
-int parser::parse_invocation()
-{
-	int node = nodes.size();
-	nodes.push_back({ ast_type::Invocation, -1, {} });
-
-
-	nodes[node].children.push_back(parse_identifier());
-
-	expect_token(token_type::OpenParentesis);
-
-	while (true)	// Guarda los parametros
-	{
-		if (peek_ahead(0).type != token_type::CloseParentesis) nodes[node].children.push_back(parse_expresion());
-		else
-		{
-			eat_token();
-			break;
-		}
-
-		if (peek_ahead(0).type == token_type::Comma) eat_token();
-
-	}
-
-	return node;
-}
-
-
-int parser::parse_identifier()
-{
-	int node = nodes.size();
-	nodes.push_back({ ast_type::Identifier, index, {} });
-
-	eat_token();
-
-	return node;
-}
-
-int parser::parse_literal()
-{
-	int node = nodes.size();
-	nodes.push_back({ ast_type::Literal, index, {} });
-
-	eat_token();
-
-	return node;
-}
-
-int parser::parse_binary_op()	// @Todo
-{
-	int left = parse_expresion();
-	eat_token(); // operator
-	int rigt = parse_expresion();
-}
-*/

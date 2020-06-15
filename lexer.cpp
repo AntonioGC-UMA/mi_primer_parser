@@ -129,7 +129,7 @@ bool Lexer::get_next_token()
 	case '<':
 		tokens.emplace_back(token_type::LessThan, index, line, colum, 1); return advance();
 	case '>':
-		tokens.emplace_back(token_type::MoreThan, index, line, colum, 1); return advance();
+		return get_more_than();
 	case '=':
 		return get_equals();
 	case '!':
@@ -141,7 +141,7 @@ bool Lexer::get_next_token()
 	case ';':
 		tokens.emplace_back(token_type::Semicolon, index, line, colum, 1); return advance();
 	case ':':
-		tokens.emplace_back(token_type::Colon, index, line, colum, 1); return advance();
+		return get_colon();
 	case '"':
 
 
@@ -155,60 +155,32 @@ bool Lexer::get_next_token()
 
 bool Lexer::get_number()	// Valid for ints and floats
 {
-	Token token = { token_type::Int, index, line, colum, 0 };
+	token_type previous_token = look_back(1);
 
-	if (!get_int()) return false;
+	if (previous_token != token_type::Dot) return get_int();
 
-	if (caracter != '.')
-	{
-		token.size = index - token.position;	// is an int
-		tokens.push_back(token);
-		return true;
-	}
+	get_int();
 
-	if (!advance()) return false;
+	tokens[tokens.size() - 3].size += 1 + tokens.back().size;	// changes the first int token to be a float
+	tokens[tokens.size() - 3].type = token_type::Float;
 
-	if (!get_int()) return false;
+	tokens.pop_back(); // the number
+	tokens.pop_back(); // the dot
 
-	if (caracter == '.')
-	{
-		message = "Error tokenizing float";
-		error = true;
-		return false;
-	}
-
-	token.type = token_type::Float;				// is a float	
-	token.size = index - token.position;
-	tokens.push_back(token);
 	return true;
 }
 
 bool Lexer::get_int()
 {
+	Token token = { token_type::Int, index, line, colum, 0 };
+
 	while ('0' <= caracter && caracter <= '9')
 	{
 		if (!advance()) return false;
+		token.size++;
 	}
 
-	switch (caracter)
-	{
-	case '+':	// valid characters after a number
-	case '-':
-	case '*':
-	case '/':
-	case '<':
-	case '>':
-	case '=':
-	case ')':
-	case ';':
-	case '.':
-	case ',':
-		break;
-	default:
-		message = "Error tokenizing int";
-		error = true;
-		return false;
-	}
+	tokens.push_back(token);
 
 	return true;
 }
@@ -221,8 +193,8 @@ bool Lexer::get_string()
 
 	while (caracter != '"')
 	{
-		token.size++;
 		if (!advance()) return false;
+		token.size++;
 	}
 
 	tokens.push_back(token);
@@ -340,6 +312,39 @@ bool Lexer::get_equals()
 		message = "Error tokenizing '='";
 		error = true;
 		return false;
+	}
+
+	return advance();
+}
+
+bool Lexer::get_colon()
+{
+	token_type previous_token = look_back(1);
+
+	if (previous_token == token_type::Colon)
+	{
+		tokens.back().type = token_type::ColonColon;
+		tokens.back().size += 1;
+		return true;
+	}
+
+	tokens.emplace_back(token_type::Colon, index, line, colum, 1);
+
+	return advance();
+}
+
+bool Lexer::get_more_than()
+{
+	token_type previous_token = look_back(1);
+
+	if (previous_token == token_type::Minus)
+	{
+		tokens.back().type = token_type::Arrow;
+		tokens.back().size += 1;
+	}
+	else
+	{
+		tokens.emplace_back(token_type::MoreThan, index, line, colum, 1);
 	}
 
 	return advance();
