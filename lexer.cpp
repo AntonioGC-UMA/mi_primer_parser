@@ -6,6 +6,55 @@ Token::Token(token_type t, unsigned int p, unsigned int l, unsigned int c, unsig
 
 }
 
+string token_name[] = 
+{
+	"Identifier",
+	"Dot",
+	"Comma",
+	"Semicolon",
+	"Colon",
+	"OpenBraket",
+	"CloseBraket",
+	"OpenParentesis",
+	"CloseParentesis",
+	"OpenBox",
+	"CloseBox",
+	"Arrow",
+	"Equals",
+	"Plus",
+	"Minus",
+	"Times",
+	"Slash",
+	"LessThan",
+	"MoreThan",
+	"Not",
+	"EqualsEquals",
+	"PlusEquals",
+	"MinusEquals",
+	"TimesEquals",
+	"SlashEquals",
+	"LessThanEquals",
+	"MoreThanEquals",
+	"NotEquals",
+	"ColonEquals",
+	"ColonColon",
+	"If",		// TODO add to the reserved keywords the basic types
+	"Else",
+	"For",
+	"While",
+	"Return",
+	"Continue",
+	"Break",
+	"Enum",
+	"Struct",
+	"Null",
+	"Void",
+	"String",	// this are literals
+	"Int",
+	"Float",
+	"End_Of_File"
+};
+
 void Lexer::load_file(string file_name)
 {
 	ifstream in;
@@ -325,10 +374,12 @@ bool Lexer::get_colon()
 	{
 		tokens.back().type = token_type::ColonColon;
 		tokens.back().size += 1;
-		return true;
+	}
+	else
+	{
+		tokens.emplace_back(token_type::Colon, index, line, colum, 1);
 	}
 
-	tokens.emplace_back(token_type::Colon, index, line, colum, 1);
 
 	return advance();
 }

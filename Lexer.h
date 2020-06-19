@@ -71,6 +71,8 @@ enum class token_type
 	End_Of_File
 };
 
+extern string token_name[];
+
 struct Token
 {
 	token_type type;

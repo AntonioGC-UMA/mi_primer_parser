@@ -14,7 +14,6 @@ enum class ast_type
 	Identifier,
 	UnaryOperator,
 	BinaryOperator,
-	Declaration,
 	ConstantDeclaration,
 	Asigment,
 };

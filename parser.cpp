@@ -110,10 +110,9 @@ Ast_node* Parser::parse_binary_operator(Ast_node* left)
         if (right == nullptr) return nullptr;
         node.children.push_back(right);
         nodes.push_back(node);
-        return &nodes.back();
-    default:
-        return left;    // This is the case where we did not have a binary operator        
+        return &nodes.back();         
     }  
+    return left;    // This is the case where we did not have a binary operator       
 }
 
 Ast_node* Parser::parse_declaration()
@@ -148,6 +147,8 @@ Ast_node* Parser::parse_declaration()
     index += offset;
 
     node->children.push_back(parse_expresion());
+
+    return node;
 }
 
 Ast_node* Parser::parse_asigment()
@@ -169,6 +170,21 @@ Ast_node* Parser::parse_asigment()
     return node;
 }
 
+Ast_node* Parser::parse_invocation()
+{
+    return nullptr;
+}
+
+Ast_node* Parser::parse_identifier()
+{
+    return nullptr;
+}
+
+Ast_node* Parser::parse_literal()
+{
+    return nullptr;
+}
+
 
 bool Parser::is_invocation()
 {
@@ -178,6 +194,16 @@ bool Parser::is_invocation()
 bool Parser::is_identifier()
 {
     return peek(0) == token_type::Identifier;
+}
+
+Ast_node* Parser::parse_unary_operator()
+{
+    return nullptr;
+}
+
+Ast_node* Parser::parse_parentesis()
+{
+    return nullptr;
 }
 
 bool Parser::is_declaration()

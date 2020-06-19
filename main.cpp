@@ -11,7 +11,7 @@ void prueba_lexer()
 
 	for (Token t : lex.tokens)
 	{
-		cout << lex.text.substr(t.position, t.size) << endl;
+		cout << "Type: " << token_name[(int)t.type] << "\t" << lex.text.substr(t.position, t.size) << endl;
 	}
 }
 
