@@ -20,7 +20,7 @@ enum class ast_type
 
 struct Ast_node
 {
-	ast_type type;
+	ast_type type = ast_type::CodeBlock;
 
 	string value;
 
@@ -31,6 +31,8 @@ struct Parser
 {
 	Lexer lexer;
 	int index = 0;
+
+	Ast_node* current_binary;
 
 	Ast_node* root;
 
@@ -47,7 +49,8 @@ struct Parser
 	Ast_node* parse_statement();
 	Ast_node* parse_expresion();
 	
-	Ast_node* parse_binary_operator(Ast_node* left);
+	int get_precedence();
+	Ast_node* parse_binary_operator(Ast_node* left, int precedence);
 
 	Ast_node* parse_declaration();
 	Ast_node* parse_asigment();

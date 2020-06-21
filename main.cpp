@@ -1,7 +1,7 @@
 //#include "Json_Parser.hpp"
 
 #include "Lexer.h"
-
+#include "Parser.h"
 
 void prueba_lexer()
 {
@@ -15,11 +15,20 @@ void prueba_lexer()
 	}
 }
 
+void prueba_parser()
+{
+	Parser par;
 
+	par.parse_file("salida.txt");
+
+	
+}
 
 int main()
 {
-	prueba_lexer();
+	//prueba_lexer();
+
+	prueba_parser();
 
 	return 0;
 }

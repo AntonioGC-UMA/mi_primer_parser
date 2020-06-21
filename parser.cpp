@@ -5,12 +5,6 @@ bool Parser::parse_file(string file_name)
 {
     bool success = lexer.tokenize_file(file_name);
 
-    if (!success)
-    {
-        cerr << lexer.error << endl;
-        return false;
-    }
-
     root = parse_code_block(); 
 
     return true;     // TODO check for errors
@@ -18,7 +12,9 @@ bool Parser::parse_file(string file_name)
 
 bool Parser::expect_token(token_type token)
 {
-    if (peek(0) == token) return true;
+    index++;
+
+    if (peek(-1) == token) return true;
 
     cerr << "Unexpected token" << endl;
 
@@ -53,8 +49,6 @@ Ast_node* Parser::parse_code_block()
 
 Ast_node* Parser::parse_statement()
 {
-    token_type current = peek(0);
-
     Ast_node* res = nullptr;
 
     if(is_declaration())        res = parse_declaration();
@@ -73,78 +67,98 @@ Ast_node* Parser::parse_expresion()
     Ast_node* res = nullptr;
 
     
-    if (is_invocation())                                res = parse_invocation();
-    else if (is_identifier())                           res = parse_identifier();
-    else if (is_literal())                              res = parse_literal();
-    else if (is_unary_operator())                       res = parse_unary_operator();
-    else if (parse_parentesis())                        res = parse_parentesis();
+    if (is_invocation())              res = parse_invocation();
+    else if (is_identifier())         res = parse_identifier();
+    else if (is_literal())            res = parse_literal();
+    else if (is_unary_operator())     res = parse_unary_operator();
+    else if (parse_parentesis())      res = parse_parentesis();
     
-    return parse_binary_operator(res);
+    return res;//parse_binary_operator(res, 0);
 }
 
-Ast_node* Parser::parse_binary_operator(Ast_node* left)
+int Parser::get_precedence()
 {
-    if (left == nullptr) return nullptr;
-
-    Ast_node node;
-    node.type = ast_type::BinaryOperator; // TODO this is way to little information
-    node.children.push_back(left);
-
     switch (peek(0))
     {
-    case token_type::Plus:
-    case token_type::Minus:
-    case token_type::Times:
-    case token_type::Slash:
+    case token_type::Plus:  return 20;
+    case token_type::Minus: return 20;
+    case token_type::Times: return 40;
+    case token_type::Slash: return 40;
     case token_type::PlusEquals:
     case token_type::MinusEquals:
     case token_type::TimesEquals:
     case token_type::SlashEquals:
     case token_type::LessThan:
-    case token_type::MoreThan:    
+    case token_type::MoreThan:
     case token_type::LessThanEquals:
     case token_type::MoreThanEquals:
     case token_type::NotEquals:
     case token_type::EqualsEquals:
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+Ast_node* Parser::parse_binary_operator(Ast_node* left, int precedence)
+{
+    if (left == nullptr) return nullptr;
+
+    int my_precedence = get_precedence();
+
+    if (my_precedence > precedence)
+    {
+        nodes.push_back({ ast_type::BinaryOperator });
+
+        Ast_node* node = &nodes.back();
+        node->type = ast_type::BinaryOperator;
+        node->children.push_back(left);
+
+        index++; 
+
         Ast_node* right = parse_expresion();
-        if (right == nullptr) return nullptr;
-        node.children.push_back(right);
-        nodes.push_back(node);
-        return &nodes.back();         
-    }  
+
+        int next_precedence;
+
+        while ((next_precedence = get_precedence()) != -1)  // mientras haya mas operadores binarios
+        {
+            if (my_precedence < next_precedence)
+            {
+                right = parse_binary_operator(right, my_precedence + 1);
+                node->children.push_back(right);
+            }
+            else
+            {
+                node->children.push_back(right);
+                node = parse_binary_operator(node, next_precedence + 1);
+            }
+        }
+
+        return node;
+    }
+
     return left;    // This is the case where we did not have a binary operator       
 }
 
 Ast_node* Parser::parse_declaration()
 {
-    int offset = 2;     // the offset of the position i'm looking at
-    token_type modifier = peek(offset);
+    token_type modifier = peek(1);
     
-    if (modifier == token_type::Identifier)
-    {
-        offset++;
-        modifier = peek(offset); // parse the type info
-    }
 
-    if (modifier == token_type::Colon)
+    if (modifier == token_type::ColonColon)
     {
         nodes.push_back({ ast_type::ConstantDeclaration });
     }    
-    else if (modifier == token_type::Equals)
+    else if (modifier == token_type::ColonEquals)
     {
-        nodes.push_back({ ast_type::Declaration }); // all declarations are declaration and asigment
+        nodes.push_back({ ast_type::Declaration });
     }
-
-    offset;
 
     Ast_node* node = &nodes.back();
 
     node->children.push_back(parse_identifier());
 
-    // TODO add the type, either read it or infer it
-    //node->children.push_back(type);
-
-    index += offset;
+    index++; //skip the :: or :=
 
     node->children.push_back(parse_expresion());
 
@@ -160,6 +174,8 @@ Ast_node* Parser::parse_asigment()
 
     if (!variable) return nullptr;
 
+    index++;
+
     Ast_node* value = parse_expresion();
 
     if (!value) return nullptr;
@@ -172,17 +188,52 @@ Ast_node* Parser::parse_asigment()
 
 Ast_node* Parser::parse_invocation()
 {
-    return nullptr;
+    nodes.push_back({ ast_type::Invocation });
+    Ast_node* node = &nodes.back();
+
+    Ast_node* name = parse_identifier();
+
+    if (!name) return nullptr;
+
+    node->children.push_back(name);
+
+    expect_token(token_type::OpenParentesis);
+
+    if (peek(0) == token_type::CloseParentesis) return node;    // No arguments
+
+    Ast_node* arg;
+
+    while (arg = parse_expresion())
+    {
+        node->children.push_back(arg);
+        if (peek(0) == token_type::Comma) continue;
+        if (peek(0) == token_type::CloseParentesis) break;
+        return nullptr; // ERROR
+    }
+
+    return node;
 }
 
 Ast_node* Parser::parse_identifier()
 {
-    return nullptr;
+    nodes.push_back({ ast_type::Identifier });
+    Ast_node* node = &nodes.back();
+
+    Token t = lexer.tokens[index];
+    node->value = lexer.text.substr(t.position, t.size);
+    index++;
+    return node;
 }
 
 Ast_node* Parser::parse_literal()
 {
-    return nullptr;
+    nodes.push_back({ ast_type::Literal });
+    Ast_node* node = &nodes.back();
+
+    Token t = lexer.tokens[index];
+    node->value = lexer.text.substr(t.position, t.size);
+    index++;
+    return node;
 }
 
 
@@ -198,20 +249,28 @@ bool Parser::is_identifier()
 
 Ast_node* Parser::parse_unary_operator()
 {
-    return nullptr;
+    nodes.push_back({ ast_type::Identifier });
+    Ast_node* node = &nodes.back();
+
+    node->children.push_back(parse_expresion());    // @Incomplete
+    return node;
 }
 
 Ast_node* Parser::parse_parentesis()
 {
-    return nullptr;
+    expect_token(token_type::OpenParentesis);
+    Ast_node* node = parse_expresion();
+    expect_token(token_type::CloseParentesis);
+
+    return node;
 }
 
 bool Parser::is_declaration()
 {
-    return peek(0) == token_type::Identifier && peek(1) == token_type::Colon;
+    return peek(0) == token_type::Identifier && (peek(1) == token_type::ColonColon || peek(1) == token_type::ColonEquals);
 }
 
-bool Parser::is_asigment()  // TODO
+bool Parser::is_asigment()
 {
     return peek(0) == token_type::Identifier && peek(1) == token_type::Equals;
 }

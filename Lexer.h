@@ -90,7 +90,7 @@ struct Lexer
 	bool error = false;
 
 	unsigned int index = 0;
-	char caracter;
+	char caracter = ' ';
 
 	unsigned int line = 1, colum = 1;
 

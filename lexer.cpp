@@ -116,10 +116,25 @@ bool Lexer::skip_white_space()
 
 bool Lexer::skip_coments()
 {
-	if ((index + 1) >= tokens.size()) return true;
+	if ((index + 1) >= text.size()) return true;
 
-	if (text[index + 1] == '/')
+	if (text[index] == '/')
 	{
+		if (text[index + 1] == '*')
+		{
+			while (advance())
+			{
+				if (caracter == '\n')
+				{
+					line++;
+					colum = 0;
+				}
+				else if (caracter == '*' && advance() && caracter == '/') return advance();
+			}
+
+			return false;
+		}
+
 		while (caracter != '\n')
 		{
 			if (!advance()) return false;
@@ -129,21 +144,7 @@ bool Lexer::skip_coments()
 		colum = 0;
 		return true;
 	}
-	else if (text[index + 1] == '*')
-	{
-		while (advance())
-		{
-			if (caracter == '\n')
-			{
-				line++;
-				colum = 0;
-			}
-			else if (caracter == '/' && advance() && caracter == '*') return true;
-		}
-
-		return false;
-	}
-
+	else 
 
 	return true;
 }
