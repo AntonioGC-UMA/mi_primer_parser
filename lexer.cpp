@@ -193,7 +193,7 @@ bool Lexer::get_next_token()
 	case ':':
 		return get_colon();
 	case '"':
-
+		return get_string();
 
 	default:		
 		if ('0' <= caracter && caracter <= '9') return get_number();
@@ -249,7 +249,7 @@ bool Lexer::get_string()
 
 	tokens.push_back(token);
 
-	return true;
+	return advance();
 }
 
 bool Lexer::get_identifier()

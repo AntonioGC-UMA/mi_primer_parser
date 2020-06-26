@@ -151,7 +151,11 @@ Ast_node* Parser::parse_declaration()
     }    
     else if (modifier == token_type::ColonEquals)
     {
-        nodes.push_back({ ast_type::Declaration });
+        nodes.push_back({ ast_type::Declaration }); // TODO change this to Declaration and asigment
+    }
+    else if(modifier == token_type::Colon)
+    {
+        nodes.push_back({ ast_type::Declaration }); 
     }
 
     Ast_node* node = &nodes.back();
@@ -160,7 +164,10 @@ Ast_node* Parser::parse_declaration()
 
     index++; //skip the :: or :=
 
-    node->children.push_back(parse_expresion());
+    if (modifier != token_type::Colon)
+    {
+        node->children.push_back(parse_expresion());
+    }
 
     return node;
 }
@@ -206,10 +213,13 @@ Ast_node* Parser::parse_invocation()
     while (arg = parse_expresion())
     {
         node->children.push_back(arg);
-        if (peek(0) == token_type::Comma) continue;
-        if (peek(0) == token_type::CloseParentesis) break;
-        return nullptr; // ERROR
+
+        if (peek(0) != token_type::Comma) break;
+
+        index++;
     }
+
+    expect_token(token_type::CloseParentesis);
 
     return node;
 }

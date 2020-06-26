@@ -11,4 +11,6 @@ print(c, foo(c, 10.123));
 
 a := 20;
 
-a = 10;
+a = "veinte";
+
+f(a, "caracter", 324.12);
