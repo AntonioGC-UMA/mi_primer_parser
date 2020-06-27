@@ -9,7 +9,7 @@ c := foo(15, 12);
 print(c, foo(c, 10.123));
 */
 
-a := 20;
+a := a * f(b) + c + d * e * f;
 
 a = "veinte";
 

@@ -39,4 +39,7 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="salida.txt" />
+  </ItemGroup>
 </Project>

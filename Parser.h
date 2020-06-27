@@ -36,6 +36,8 @@ struct Parser
 
 	Ast_node* root;
 
+	Ast_node* binary_root;
+
 	deque<Ast_node> nodes;
 
 	bool parse_file(string file_name);
@@ -50,7 +52,8 @@ struct Parser
 	Ast_node* parse_expresion();
 	
 	int get_precedence();
-	Ast_node* parse_binary_operator(Ast_node* left, int precedence);
+	int get_precedence(string token);
+	Ast_node* parse_binary_operator(Ast_node* left);
 
 	Ast_node* parse_declaration();
 	Ast_node* parse_asigment();

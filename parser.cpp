@@ -1,9 +1,22 @@
 #include "Parser.h"
 #include "Parser.h"
 
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Verifier.h"
+
 bool Parser::parse_file(string file_name)
 {
     bool success = lexer.tokenize_file(file_name);
+
 
     root = parse_code_block(); 
 
@@ -73,7 +86,7 @@ Ast_node* Parser::parse_expresion()
     else if (is_unary_operator())     res = parse_unary_operator();
     else if (parse_parentesis())      res = parse_parentesis();
     
-    return res;//parse_binary_operator(res, 0);
+    return parse_binary_operator(res);
 }
 
 int Parser::get_precedence()
@@ -100,44 +113,50 @@ int Parser::get_precedence()
     }
 }
 
-Ast_node* Parser::parse_binary_operator(Ast_node* left, int precedence)
+int Parser::get_precedence(string token)
+{
+    if (token.compare("+") == 0 || token.compare("-") == 0) return 20;
+    if (token.compare("*") == 0 || token.compare("/") == 0) return 40;
+    return -1;
+}
+
+Ast_node* Parser::parse_binary_operator(Ast_node* left)
 {
     if (left == nullptr) return nullptr;
 
-    int my_precedence = get_precedence();
+    int p1 = get_precedence();
 
-    if (my_precedence > precedence)
+    if (p1 < 0) return left; // This is the case where we did not have a binary operator    
+    
+    nodes.push_back({ ast_type::BinaryOperator });
+
+    Ast_node* node = &nodes.back();
+    node->type = ast_type::BinaryOperator;
+    node->value = lexer.text.substr(lexer.tokens[index].position, lexer.tokens[index].size);
+    node->children.push_back(left);
+
+    index++; 
+
+    Ast_node* right = parse_expresion();
+
+    int p2 = get_precedence(right->value);
+
+    if (p1 < p2 || p2 < 0) // adoptar
     {
-        nodes.push_back({ ast_type::BinaryOperator });
-
-        Ast_node* node = &nodes.back();
-        node->type = ast_type::BinaryOperator;
-        node->children.push_back(left);
-
-        index++; 
-
-        Ast_node* right = parse_expresion();
-
-        int next_precedence;
-
-        while ((next_precedence = get_precedence()) != -1)  // mientras haya mas operadores binarios
-        {
-            if (my_precedence < next_precedence)
-            {
-                right = parse_binary_operator(right, my_precedence + 1);
-                node->children.push_back(right);
-            }
-            else
-            {
-                node->children.push_back(right);
-                node = parse_binary_operator(node, next_precedence + 1);
-            }
-        }
-
+        node->children.push_back(right);
         return node;
     }
+    else    // robar
+    {
+        Ast_node* res = right;
 
-    return left;    // This is the case where we did not have a binary operator       
+        while (right->children.size() > 0 && right->children[0]->type == ast_type::BinaryOperator) right = right->children[0];
+
+        node->children.push_back(right->children[0]);
+        right->children[0] = node;
+        return res;
+    }
+
 }
 
 Ast_node* Parser::parse_declaration()
