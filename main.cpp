@@ -2,6 +2,7 @@
 
 #include "Lexer.h"
 #include "Parser.h"
+#include "Visitor.h"
 
 void prueba_lexer()
 {
@@ -21,7 +22,9 @@ void prueba_parser()
 
 	par.parse_file("salida.txt");
 
-	
+	Visitor vis;
+
+	vis.visit(par.root);
 }
 
 int main()
@@ -29,6 +32,8 @@ int main()
 	//prueba_lexer();
 
 	prueba_parser();
+
+
 
 	return 0;
 }
