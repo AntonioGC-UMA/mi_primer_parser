@@ -86,13 +86,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;D_CRT_SECURE_NO_DEPRECATE;D_CRT_SECURE_NO_WARNINGS;D_CRT_NONSTDC_NO_DEPRECATE;D_CRT_NONSTDC_NO_WARNINGS;D_SCL_SECURE_NO_DEPRECATE;D_SCL_SECURE_NO_WARNINGS;DUNICODE;D_UNICODE;D__STDC_CONSTANT_MACROS;D__STDC_FORMAT_MACROS;D__STDC_LIMIT_MACROS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\Programacion\llvm-10.0.0.src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\Programacion\llvm-10.0.0.src\Release\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMCore.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMRemarks.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMBitstreamReader.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMBinaryFormat.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMSupport.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMDemangle.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,13 +117,16 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;D_CRT_SECURE_NO_DEPRECATE;D_CRT_SECURE_NO_WARNINGS;D_CRT_NONSTDC_NO_DEPRECATE;D_CRT_NONSTDC_NO_WARNINGS;D_SCL_SECURE_NO_DEPRECATE;D_SCL_SECURE_NO_WARNINGS;DUNICODE;D_UNICODE;D__STDC_CONSTANT_MACROS;D__STDC_FORMAT_MACROS;D__STDC_LIMIT_MACROS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\Programacion\llvm-10.0.0.src\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\Programacion\llvm-10.0.0.src\Release\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMCore.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMRemarks.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMBitstreamReader.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMBinaryFormat.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMSupport.lib;D:\Programacion\llvm-10.0.0.src\Release\lib\LLVMDemangle.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,15 +134,18 @@
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;D_CRT_SECURE_NO_DEPRECATE;D_CRT_SECURE_NO_WARNINGS;D_CRT_NONSTDC_NO_DEPRECATE;D_CRT_NONSTDC_NO_WARNINGS;D_SCL_SECURE_NO_DEPRECATE;D_SCL_SECURE_NO_WARNINGS;DUNICODE;D_UNICODE;D__STDC_CONSTANT_MACROS;D__STDC_FORMAT_MACROS;D__STDC_LIMIT_MACROS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>D:\Programacion\llvm-10.0.0.src\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\Programacion\llvm-10.0.0.src\Release\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

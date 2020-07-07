@@ -2,8 +2,16 @@
 
 #include "Parser.h"
 
+#include <unordered_map>
+
+
+
 struct Visitor
 {
+	int tabs = -1;
+	ofstream file;
+
+	void visit_tree(Ast_node* node, string file_name);
 	void visit(Ast_node* node);
 	void visit_code_block(Ast_node* node);
 	void visit_identifier(Ast_node* node);

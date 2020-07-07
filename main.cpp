@@ -24,7 +24,7 @@ void prueba_parser()
 
 	Visitor vis;
 
-	vis.visit(par.root);
+	vis.visit_tree(par.root, "salida.py");
 }
 
 int main()

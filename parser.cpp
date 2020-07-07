@@ -84,7 +84,7 @@ Ast_node* Parser::parse_expresion()
     else if (is_identifier())         res = parse_identifier();
     else if (is_literal())            res = parse_literal();
     else if (is_unary_operator())     res = parse_unary_operator();
-    else if (parse_parentesis())      res = parse_parentesis();
+    else if (is_parentesis())      res = parse_parentesis();
     
     return parse_binary_operator(res);
 }
@@ -150,7 +150,15 @@ Ast_node* Parser::parse_binary_operator(Ast_node* left)
     {
         Ast_node* res = right;
 
-        while (right->children.size() > 0 && right->children[0]->type == ast_type::BinaryOperator) right = right->children[0];
+        Ast_node* prev = right;
+
+        while (right->children.size() > 0 && right->children[0]->type == ast_type::BinaryOperator)
+        {
+            prev = right;
+            right = right->children[0];
+        }
+
+        if (get_precedence(right->value) > p1) right = prev;
 
         node->children.push_back(right->children[0]);
         right->children[0] = node;
@@ -314,4 +322,10 @@ bool Parser::is_unary_operator() // TODO
 {
     token_type type = peek(0);
     return type == token_type::Minus || type == token_type::Not;
+}
+
+bool Parser::is_parentesis()
+{
+    token_type type = peek(0);
+    return type == token_type::OpenParentesis;
 }

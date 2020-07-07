@@ -72,6 +72,7 @@ struct Parser
 	bool is_identifier();
 	bool is_literal();
 	bool is_unary_operator();
+	bool is_parentesis();
 	
 };
 
