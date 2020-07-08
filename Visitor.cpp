@@ -26,13 +26,14 @@ void Visitor::visit(Ast_node* node)
 		visit_declaration(node); break;
 	case ast_type::Literal:
 		visit_identifier(node); break;
+	case ast_type::Lambda:
+		visit_lambda(node); break;
 	}
 }
 
 void Visitor::visit_code_block(Ast_node* node)
 {	
 	tabs++;
-
 
 	for (auto child : node->children)
 	{
@@ -63,15 +64,14 @@ void Visitor::visit_binary_operator(Ast_node* node)
 void Visitor::visit_invocation(Ast_node* node)
 {
 	visit(node->children[0]);
-	file << "( ";
-	for (int i = 1; i < node->children.size() - 1; i++)
+	file << "(";
+	for (int i = 1; i < node->children.size(); i++)
 	{
 		visit(node->children[i]);
 		file << ", ";
 	}
-	visit(node->children[node->children.size() - 1]);
 
-	file << " )";
+	file << ")";
 }
 
 void Visitor::visit_declaration(Ast_node* node)
@@ -86,6 +86,21 @@ void Visitor::visit_assigment(Ast_node* node)
 	visit(node->children[0]);
 	file << " = ";
 	visit(node->children[1]);
+}
+
+void Visitor::visit_lambda(Ast_node* node)
+{
+	file << "def ";
+	visit(node->children[0]);
+	file << "(";
+	for (int i = 1; i < node->children.size() - 1; i++)
+	{
+		visit(node->children[i]);
+		file << ", ";
+	}
+	file << "):\n";
+
+	visit(node->children[node->children.size() - 1]);
 }
 
 /*

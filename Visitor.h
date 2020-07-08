@@ -19,5 +19,6 @@ struct Visitor
 	void visit_invocation(Ast_node* node);
 	void visit_declaration(Ast_node* node);
 	void visit_assigment(Ast_node* node);
+	void visit_lambda(Ast_node* node);
 };
 

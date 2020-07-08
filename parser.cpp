@@ -69,7 +69,11 @@ Ast_node* Parser::parse_statement()
     else if(is_invocation())    res = parse_invocation();
     // TODO parse keywords here
 
-    if (!expect_token(token_type::Semicolon)) res = nullptr;
+    if (!expect_token(token_type::Semicolon))
+    {
+        index--;
+        res = nullptr;
+    }
 
     return res;
 }
@@ -191,10 +195,41 @@ Ast_node* Parser::parse_declaration()
 
     index++; //skip the :: or :=
 
-    if (modifier != token_type::Colon)
+    if (peek(0) == token_type::OpenParentesis)  // check for function declaration
+    {
+        int offset = 1;
+        int parentesis = 1;
+        while (parentesis != 0)
+        {
+            if (peek(offset) == token_type::OpenParentesis) parentesis++;
+            else if (peek(offset) == token_type::CloseParentesis) parentesis--;
+            offset++;
+        }
+
+        if (peek(offset) == token_type::Arrow)
+        {
+            node->type = ast_type::Lambda;
+            index++;    // skip (
+            while (peek(0) != token_type::CloseParentesis)
+            {
+                node->children.push_back(parse_identifier());
+                if (peek(0) != token_type::CloseParentesis) index++;
+            }
+            index++;    // skip )
+            index++;    // skip ->
+            index++;    // skip {
+
+            node->children.push_back(parse_code_block());
+
+            index++;    // skip }
+        }
+    }
+    else if (modifier != token_type::Colon)
     {
         node->children.push_back(parse_expresion());
     }
+
+
 
     return node;
 }
@@ -233,7 +268,11 @@ Ast_node* Parser::parse_invocation()
 
     expect_token(token_type::OpenParentesis);
 
-    if (peek(0) == token_type::CloseParentesis) return node;    // No arguments
+    if (peek(0) == token_type::CloseParentesis)
+    {
+        index++;
+        return node;    // No arguments
+    }
 
     Ast_node* arg;
 
